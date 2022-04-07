@@ -1,59 +1,57 @@
-import { PrismaService } from 'nestjs-prisma';
-import { Prisma, User } from '@prisma/client';
+import { UserRepository } from './../../user/repositories/user.repository';
 import {
   Injectable,
   NotFoundException,
   BadRequestException,
-  ConflictException,
   UnauthorizedException,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { PasswordService } from './password.service';
-import { SignupInput } from './dto/signup.input';
-import { Token } from './models/token.model';
 import { SecurityConfig } from 'src/common/configs/config.interface';
+import { RegisterInput } from '../dto/register.input';
+import { Token } from '../models/token.model';
+import PostgresErrorCode from '../../database/enums/postgres-error-code.enum';
+import { User } from '../../user/models/user.model';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly prisma: PrismaService,
+    private readonly userRepository: UserRepository,
     private readonly passwordService: PasswordService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
   ) {}
 
-  async createUser(payload: SignupInput): Promise<Token> {
+  async createUser(payload: RegisterInput): Promise<Token> {
     const hashedPassword = await this.passwordService.hashPassword(
-      payload.password
+      payload.password,
     );
 
     try {
-      const user = await this.prisma.user.create({
-        data: {
-          ...payload,
-          password: hashedPassword,
-          role: 'USER',
-        },
+      const user = await this.userRepository.createUser({
+        ...payload,
+        password: hashedPassword,
       });
 
       return this.generateTokens({
         userId: user.id,
       });
-    } catch (e) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2002'
-      ) {
-        throw new ConflictException(`Email ${payload.email} already used.`);
-      } else {
-        throw new Error(e);
+    } catch (err) {
+      if (err?.code === PostgresErrorCode.UniqueViolation) {
+        throw new BadRequestException('Username already exists');
       }
+      throw new HttpException(
+        'Something went wrong',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
   async login(email: string, password: string): Promise<Token> {
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    const user = await this.userRepository.findOne({ where: { email } });
 
     if (!user) {
       throw new NotFoundException(`No user found for email: ${email}`);
@@ -61,7 +59,7 @@ export class AuthService {
 
     const passwordValid = await this.passwordService.validatePassword(
       password,
-      user.password
+      user.password,
     );
 
     if (!passwordValid) {
@@ -74,12 +72,12 @@ export class AuthService {
   }
 
   validateUser(userId: string): Promise<User> {
-    return this.prisma.user.findUnique({ where: { id: userId } });
+    return this.userRepository.findOne({ where: { id: userId } });
   }
 
   getUserFromToken(token: string): Promise<User> {
     const id = this.jwtService.decode(token)['userId'];
-    return this.prisma.user.findUnique({ where: { id } });
+    return this.userRepository.findOne({ where: { id } });
   }
 
   generateTokens(payload: { userId: string }): Token {
@@ -96,7 +94,7 @@ export class AuthService {
   private generateRefreshToken(payload: { userId: string }): string {
     const securityConfig = this.configService.get<SecurityConfig>('security');
     return this.jwtService.sign(payload, {
-      secret: this.configService.get('JWT_REFRESH_SECRET'),
+      secret: securityConfig.refreshTokenSecret,
       expiresIn: securityConfig.refreshIn,
     });
   }
@@ -104,7 +102,8 @@ export class AuthService {
   refreshToken(token: string) {
     try {
       const { userId } = this.jwtService.verify(token, {
-        secret: this.configService.get('JWT_REFRESH_SECRET'),
+        secret:
+          this.configService.get<SecurityConfig>('security').refreshTokenSecret,
       });
 
       return this.generateTokens({

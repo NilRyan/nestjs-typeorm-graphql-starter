@@ -10,12 +10,13 @@ export class UserEntity extends BaseEntity {
   firstName?: string;
   @Column()
   lastName?: string;
-  @Column({ type: 'date' })
-  birthDate: Date;
+  @Column({ type: 'date', nullable: true })
+  birthDate?: Date;
 
   @Column({
     type: 'enum',
     enum: Gender,
+    nullable: true,
   })
   gender: Gender;
   @Column()
