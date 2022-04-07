@@ -94,7 +94,7 @@ export class AuthService {
   private generateRefreshToken(payload: { userId: string }): string {
     const securityConfig = this.configService.get<SecurityConfig>('security');
     return this.jwtService.sign(payload, {
-      secret: securityConfig.refreshTokenSecret,
+      secret: this.configService.get('JWT_REFRESH_SECRET'),
       expiresIn: securityConfig.refreshIn,
     });
   }
@@ -102,8 +102,7 @@ export class AuthService {
   refreshToken(token: string) {
     try {
       const { userId } = this.jwtService.verify(token, {
-        secret:
-          this.configService.get<SecurityConfig>('security').refreshTokenSecret,
+        secret: this.configService.get('JWT_REFRESH_SECRET'),
       });
 
       return this.generateTokens({

@@ -18,7 +18,7 @@ export class UserEntity extends BaseEntity {
     enum: Gender,
     nullable: true,
   })
-  gender: Gender;
+  gender?: Gender;
   @Column()
   password: string;
 }

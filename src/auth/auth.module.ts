@@ -1,3 +1,5 @@
+import { UserRepository } from './../user/repositories/user.repository';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -24,6 +26,7 @@ import { PasswordService } from './services/password.service';
       },
       inject: [ConfigService],
     }),
+    TypeOrmModule.forFeature([UserRepository]),
   ],
   providers: [
     AuthService,

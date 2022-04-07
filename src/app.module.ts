@@ -11,7 +11,6 @@ import { GqlConfigService } from './gql-config.service';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: ['.env'],
       isGlobal: true,
       load: [config],
     }),

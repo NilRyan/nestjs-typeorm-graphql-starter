@@ -4,7 +4,6 @@ export interface Config {
   swagger: SwaggerConfig;
   graphql: GraphqlConfig;
   security: SecurityConfig;
-  postgres: PostgresConfig;
 }
 
 export interface NestConfig {
@@ -31,18 +30,7 @@ export interface GraphqlConfig {
 }
 
 export interface SecurityConfig {
-  accessTokenSecret: string;
-  refreshTokenSecret: string;
   expiresIn: string;
   refreshIn: string;
   bcryptSaltOrRound: string | number;
-}
-
-export interface PostgresConfig {
-  host: string;
-  port: number;
-  username: string;
-  password: string;
-  database: string;
-  synchronize: boolean;
 }
