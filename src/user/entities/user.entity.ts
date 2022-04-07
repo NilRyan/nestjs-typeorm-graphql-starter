@@ -1,7 +1,22 @@
-import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { Column, Entity } from 'typeorm';
+import Gender from '../enums/gender.enum';
 
-@ObjectType()
+@Entity('users')
 export class User {
-  @Field(() => Int, { description: 'Example field (placeholder)' })
-  exampleField: number;
+  @Column({ unique: true })
+  email: string;
+  @Column()
+  firstName?: string;
+  @Column()
+  lastName?: string;
+  @Column({ type: 'date' })
+  birthDate: Date;
+
+  @Column({
+    type: 'enum',
+    enum: Gender,
+  })
+  gender: Gender;
+  @Column()
+  password: string;
 }
