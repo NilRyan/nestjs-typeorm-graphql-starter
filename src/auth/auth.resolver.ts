@@ -18,7 +18,7 @@ export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
 
   @Mutation(() => Auth)
-  async signup(@Args('data') data: RegisterInput) {
+  async register(@Args('data') data: RegisterInput) {
     data.email = data.email.toLowerCase();
     const { accessToken, refreshToken } = await this.authService.createUser(
       data,
