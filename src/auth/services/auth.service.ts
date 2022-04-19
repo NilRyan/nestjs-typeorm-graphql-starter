@@ -103,11 +103,15 @@ export class AuthService {
     try {
       const { userId } = this.jwtService.verify(token, {
         secret: this.configService.get('JWT_REFRESH_SECRET'),
-      });
+      })
 
-      return this.generateTokens({
+      const accessToken = this.generateAccessToken({
         userId,
       });
+      return {
+        accessToken,
+        refreshToken: token,
+      }
     } catch (e) {
       throw new UnauthorizedException();
     }
