@@ -12,7 +12,6 @@ Make sure to have [Node](https://github.com/nvm-sh/nvm)  and [Docker](https://do
 
 ## Installation
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install foobar.
 
 ```bash
 npm install
