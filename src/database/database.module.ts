@@ -8,6 +8,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
+        logging: true,
         type: 'postgres',
         host: configService.get('POSTGRES_HOST'),
         port: configService.get('POSTGRES_PORT'),

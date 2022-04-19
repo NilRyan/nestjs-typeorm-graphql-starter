@@ -39,8 +39,8 @@ type Query {
 
 input RegisterInput {
   email: String!
-  firstname: String
-  lastname: String
+  firstName: String
+  lastName: String
   password: String!
 }
 
